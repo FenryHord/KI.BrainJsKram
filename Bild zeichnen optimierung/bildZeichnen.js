@@ -19,6 +19,12 @@ const originalImageData = Array.from(
   ctx.getImageData(0, 0, WIDTH, HEIGHT).data
 );
 ctx.clearRect(0, 0, WIDTH, HEIGHT);
+
+const tmpCanv = document.getElementById("tmpCanv");
+tmpCanv.width = WIDTH;
+tmpCanv.height = HEIGHT;
+const tmpCtx = tmpCanv.getContext("2d");
+
 // originalImageData[0] --> 0ter Pixel, Rot-Wert
 // originalImageData[1] --> 0ter Pixel, Grün-Wert
 // originalImageData[2] --> 0ter Pixel, Blau-Wert
@@ -50,60 +56,42 @@ for (let x = 0; x < WIDTH; x++) {
   }
 }
 
-// paintImageFromTrainingData();
+//paintImageFromTrainingData(trainingData);
 
-function paintImageFromTrainingData() {
-  trainingData.forEach(data => {
+function paintImageFromTrainingData(data, canv) {
+  canv.clearRect(0, 0, WIDTH, HEIGHT);
+  data.forEach(data => {
     let color = data.output * 255;
-    ctx.beginPath();
-    ctx.lineWidth = '1';
-    ctx.strokeStyle = 'rgb(' + color + ', ' + color + ', ' + color + ')';
-    ctx.rect(data.input[0] * WIDTH, data.input[1] * HEIGHT, 1, 1);
-    ctx.stroke();
+    canv.beginPath();
+    canv.lineWidth = '1';
+    canv.strokeStyle = 'rgb(' + color + ', ' + color + ', ' + color + ')';
+    canv.rect(data.input[0] * WIDTH, data.input[1] * HEIGHT, 1, 1);
+    canv.stroke();
   });
 }
 
 // 3. Neuronales Netz bauen
-const net = new brain.NeuralNetwork({ hiddenLayers: [20] });
+const net = new brain.NeuralNetwork({ hiddenLayers: [10, 10] });
 net.setActivation('sigmoid');
 
-
-const MAXITERATIONS = 10;
-const MAXSAMPLES = 5000;
-
-let iterations = 0;
+const MAXITERATIONS = 40;
+const MAXSAMPLES = 3000;
 const conf = {
   iterations: MAXITERATIONS,
-  log: false
+  log: false,
+  learningRate: 0.3,
+  errorThresh: 0.001
 };
 
-let step = 0;
-//setInterval(myTrain, 100);
 myTrain();
-setInterval(paintCurrentNetImage, 5000);
-//setInterval(errorCalc, 5000);
 
-function errorCalc() {
-  let error = net._calculateTrainingError(trainingData);
-  document.getElementById('fortschritt').innerText =
-    'error: ' + error + " Iterations " + iterations;
+async function myTrain() {
+ // trainStep();
+  while(true) {
+    await trainStep().then(data => paintCurrentNetImage(data));
+
+  }
 }
-
-
-async function myTrain(internstep) {
-  //while(true) {
-  console.log("work " );
-  trainStep().then(
-    finishedIter);
-  //}
-}
-
-async function finishedIter(){
-  console.log("work ended ");
-  iterations += MAXITERATIONS;
-  myTrain();
-}
-
 
 async function trainStep() {
   // 4. Training
@@ -112,17 +100,16 @@ async function trainStep() {
     let rnd = Math.round(Math.random() * trainingData.length);
     currentTrainData.push(trainingData[rnd]);
   }
+
+  paintImageFromTrainingData(currentTrainData, tmpCtx);
   return net.trainAsync(currentTrainData, conf);
 }
-
-
-
+let iterations = 0;
 // 5. Validierung
-async function paintCurrentNetImage() {
-  console.log("drawing");
-  // iterations += data.iterations;
-  // document.getElementById('fortschritt').innerText =
-  //   'error: ' + data.error + ' \n Iterationen: ' + iterations;
+async function paintCurrentNetImage(data) {
+  iterations += data.iterations;
+  document.getElementById('fortschritt').innerText =
+   'error: ' + data.error + ' \n Iterationen: ' + iterations;
   for (let x = 0; x < WIDTH; x++) {
     for (let y = 0; y < HEIGHT; y++) {
       let grauwert = net.run([x / WIDTH, y / HEIGHT]);
@@ -134,5 +121,4 @@ async function paintCurrentNetImage() {
       ctx.stroke();
     }
   }
-  myTrain();
 }
