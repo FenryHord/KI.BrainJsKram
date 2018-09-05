@@ -16,9 +16,7 @@ canvas.height = HEIGHT;
 const ctx = canvas.getContext('2d');
 ctx.drawImage(original, 0, 0);
 
-const originalImageData = Array.from(
-  ctx.getImageData(0, 0, WIDTH, HEIGHT).data
-);
+const originalImageData = ctx.getImageData(0, 0, WIDTH, HEIGHT);
 ctx.clearRect(0, 0, WIDTH, HEIGHT);
 
 const tmpCanv = document.getElementById("tmpCanv");
@@ -46,10 +44,9 @@ let trainingData = [];
 for (let x = 0; x < WIDTH; x++) {
   for (let y = 0; y < HEIGHT; y++) {
     let index = x * 4 + y * 4 * WIDTH;
-
-    let r = originalImageData[index];
-    let g = originalImageData[index + 1];
-    let b = originalImageData[index + 2];
+    let r = originalImageData.data[index];
+    let b = originalImageData.data[index + 2];
+    let g = originalImageData.data[index + 1];
 
     let data = {
       input: [x / WIDTH, y / HEIGHT],
@@ -62,31 +59,53 @@ for (let x = 0; x < WIDTH; x++) {
 //paintImageFromTrainingData(trainingData);
 
 function paintImageFromTrainingData(data, canv) {
-  canv.clearRect(0, 0, WIDTH, HEIGHT);
-  data.forEach(data => {
-    let r = data.output[0] * 255;
-    let g = data.output[1] * 255;
-    let b = data.output[2] * 255;
 
-    canv.beginPath();
-    canv.lineWidth = '1';
-    canv.strokeStyle = 'rgb(' + r + ', ' + g + ', ' + b + ')';
-    canv.rect(data.input[0] * WIDTH, data.input[1] * HEIGHT, 1, 1);
-    canv.stroke();
+  console.time("draw1");
+  originalImageData.data.map((pixel, index) => {
+    originalImageData.data[index] = 0;
   });
+  let index1 = 0;
+  data.forEach(element => {
+    index1 = (Math.round(element.input[0] * WIDTH) + Math.round(element.input[1] * HEIGHT) * WIDTH) * 4;
+    originalImageData.data[index1] = element.output[0] * 225;
+    originalImageData.data[index1 + 1] = element.output[1] * 255;
+    originalImageData.data[index1 + 2] = element.output[2] * 255;
+    originalImageData.data[index1 + 3] = 255;
+  });
+
+  canv.putImageData(originalImageData, 0, 0);
+  console.timeEnd("draw1");
+
+  /*
+
+    console.time("draw2");
+    canv.clearRect(0, 0, WIDTH, HEIGHT);
+    data.forEach((pixel) => {
+      let r = pixel.output[0] * 255;
+      let g = pixel.output[1] * 255;
+      let b = pixel.output[2] * 255;
+      let a = 1;
+      testClamped.push(r, g, b, a);
+      canv.beginPath();
+      canv.lineWidth = '1';
+      canv.strokeStyle = 'rgb(' + r + ', ' + g + ', ' + b + ')';
+      canv.rect(pixel.input[0] * WIDTH, pixel.input[1] * HEIGHT, 1, 1);
+      canv.stroke();
+    });
+    console.timeEnd("draw2");*/
 }
 
 // 3. Neuronales Netz bauen
 const net = new brain.NeuralNetwork({ hiddenLayers: [20, 20] });
 net.setActivation('sigmoid');
 
-const MAXITERATIONS = 25;
-const MAXSAMPLES = 5000;
+const MAXITERATIONS = 20;
+const MAXSAMPLES = 3000;
 const conf = {
   iterations: MAXITERATIONS,
   log: false,
   learningRate: 0.3,
-  errorThresh: 0.001
+  errorThresh: 0.000005
 };
 
 let iterations = 0;
@@ -98,25 +117,40 @@ function myTrain() {
   if (trainStepCNT - drawStepCNT < 1) {
 
     trainStepCNT++;
-    trainStep().then((data) => { paintCurrentNetImage(data) });
-
+    trainStep().then(
+      (data) => { paintCurrentNetImage(data) },
+      (error) => console.error(error));
   }
   setTimeout(myTrain, 5);
 }
 
 async function trainStep() {
-  // 4. Training
   let currentTrainData = [];
   let rnd = 0;
+  let dat = undefined;
+  //currentTrainData = trainingData;
   for (let i = 0; i < MAXSAMPLES; i++) {
     rnd = Math.round(Math.random() * trainingData.length);
-    currentTrainData.push(trainingData[rnd]);
-  }
-  console.log("cnt ", currentTrainData.length);
 
+    dat = trainingData[rnd];
+    if (dat != undefined) {
+      currentTrainData.push(dat);
+    }
+  }/*
+  let proz = MAXSAMPLES / trainingData.length;
+  trainingData.forEach((element) => {
+    rnd = Math.random();
+    if(rnd < proz){
+      currentTrainData.push(element);
+    }
+  });
+  console.log("länge", currentTrainData.length, "proz", proz);*/
 
   paintImageFromTrainingData(currentTrainData, tmpCtx);
+
+  // 4. Training
   return net.trainAsync(currentTrainData, conf);
+
 }
 // 5. Validierung
 async function paintCurrentNetImage(data) {
@@ -126,6 +160,7 @@ async function paintCurrentNetImage(data) {
   iterations += data.iterations;
   document.getElementById('fortschritt').innerText =
     'error: ' + data.error + ' \n Iterationen: ' + iterations;
+  console.time("runDraw");
   for (let x = 0; x < WIDTH; x++) {
     for (let y = 0; y < HEIGHT; y++) {
       let rgb = net.run([x / WIDTH, y / HEIGHT]);
@@ -137,6 +172,10 @@ async function paintCurrentNetImage(data) {
       ctx.strokeStyle = 'rgb(' + r + ', ' + g + ', ' + b + ')';
       ctx.rect(x, y, 1, 1);
       ctx.stroke();
+
     }
   }
+  console.timeEnd("runDraw");
+
+
 }
