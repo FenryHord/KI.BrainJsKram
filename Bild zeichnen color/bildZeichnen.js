@@ -7,6 +7,20 @@
 // 5. Validierung
 
 // 1. Rohdaten beschaffen --> Pixel des Bilds
+const MAXITERATIONS = 20;
+const MAXSAMPLES = 3000;
+const conf = {
+  iterations: MAXITERATIONS,
+  log: false,
+  //learningRate: 0.3,
+  errorThresh: 0.000005
+};
+
+let iterations = 0;
+let trainStepCNT = 0;
+let drawStepCNT = 0;
+
+
 const original = document.getElementById('original');
 const WIDTH = original.width;
 const HEIGHT = original.height;
@@ -99,18 +113,7 @@ function paintImageFromTrainingData(data, canv) {
 const net = new brain.NeuralNetwork({ hiddenLayers: [20, 20] });
 net.setActivation('sigmoid');
 
-const MAXITERATIONS = 20;
-const MAXSAMPLES = 3000;
-const conf = {
-  iterations: MAXITERATIONS,
-  log: false,
-  learningRate: 0.3,
-  errorThresh: 0.000005
-};
 
-let iterations = 0;
-let trainStepCNT = 0;
-let drawStepCNT = 0;
 myTrain();
 
 function myTrain() {
