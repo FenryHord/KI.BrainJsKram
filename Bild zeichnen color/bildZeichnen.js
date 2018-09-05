@@ -77,11 +77,11 @@ function paintImageFromTrainingData(data, canv) {
 }
 
 // 3. Neuronales Netz bauen
-const net = new brain.NeuralNetwork({ hiddenLayers: [10,10] });
+const net = new brain.NeuralNetwork({ hiddenLayers: [20, 20] });
 net.setActivation('sigmoid');
 
-const MAXITERATIONS = 20;
-const MAXSAMPLES = 3000;
+const MAXITERATIONS = 25;
+const MAXSAMPLES = 5000;
 const conf = {
   iterations: MAXITERATIONS,
   log: false,
@@ -89,33 +89,43 @@ const conf = {
   errorThresh: 0.001
 };
 
+let iterations = 0;
+let trainStepCNT = 0;
+let drawStepCNT = 0;
 myTrain();
 
-async function myTrain() {
- // trainStep();
-  while(true) {
-    await trainStep().then(data => paintCurrentNetImage(data));
+function myTrain() {
+  if (trainStepCNT - drawStepCNT < 1) {
+
+    trainStepCNT++;
+    trainStep().then((data) => { paintCurrentNetImage(data) });
 
   }
+  setTimeout(myTrain, 5);
 }
 
 async function trainStep() {
   // 4. Training
   let currentTrainData = [];
+  let rnd = 0;
   for (let i = 0; i < MAXSAMPLES; i++) {
-    let rnd = Math.round(Math.random() * trainingData.length);
+    rnd = Math.round(Math.random() * trainingData.length);
     currentTrainData.push(trainingData[rnd]);
   }
+  console.log("cnt ", currentTrainData.length);
+
 
   paintImageFromTrainingData(currentTrainData, tmpCtx);
   return net.trainAsync(currentTrainData, conf);
 }
-let iterations = 0;
 // 5. Validierung
 async function paintCurrentNetImage(data) {
+  drawStepCNT++;
+
+  console.count("draw");
   iterations += data.iterations;
   document.getElementById('fortschritt').innerText =
-   'error: ' + data.error + ' \n Iterationen: ' + iterations;
+    'error: ' + data.error + ' \n Iterationen: ' + iterations;
   for (let x = 0; x < WIDTH; x++) {
     for (let y = 0; y < HEIGHT; y++) {
       let rgb = net.run([x / WIDTH, y / HEIGHT]);
