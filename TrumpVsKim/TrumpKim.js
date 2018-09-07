@@ -53,7 +53,7 @@ const generatedTrianigData = generateTestData(
   ['Trump', 'Kim']
 );
 
-const net = new brain.NeuralNetwork({ hiddenLayers: [10, 10] });
+const net = new brain.NeuralNetwork({ hiddenLayers: [1000,1000] });
 net.setActivation('sigmoid');
 const MAXITERATIONS = 100;
 const conf = {
@@ -80,10 +80,11 @@ const trainAndSave = () => {
   fs.writeFileSync('./JSON/lastJSON.json', JSON.stringify(lastJSON));
 };
 
-const testTraining = () => {
+const testTraining = (versuche) => {
   let testResult = '';
   let fromTrump = true;
-  for (let i = 0; i < 20; i++) {
+  let cntRichtig = versuche;
+  for (let i = 0; i < versuche; i++) {
     if (Math.random() < 0.5) {
       fromTrump = true;
       testResult =
@@ -102,9 +103,13 @@ const testTraining = () => {
       console.log('RICHTIG es war KIM');
     } else {
       console.log('FALSCH');
+      cntRichtig--;
     }
+
     console.log('----------------------------------------');
   }
+  let prozentRichtig = cntRichtig/versuche*100;
+  console.log('+++++++++++++++++++ ' +prozentRichtig+ ' % ++++++++++++++++++++');
 };
 trainAndSave();
-testTraining();
+testTraining(100);
