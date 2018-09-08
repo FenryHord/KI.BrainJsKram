@@ -40,7 +40,28 @@ const cleanData = data => {
 };
 
 const trainAndSave = () => {
+  const MAXITERATIONS = 100;
+  const conf = {
+    iterations: MAXITERATIONS,
+    log: true,
+    logPeriod: 10,
+    callback: () => {
+      console.timeEnd("trainSpeed");
+      console.time("trainSpeed");
+      /* for (var i = generatedTrianigData.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1));
+        var temp = generatedTrianigData[i];
+        generatedTrianigData[i] = generatedTrianigData[j];
+        generatedTrianigData[j] = temp;
+      } */
+    },
+    callbackPerid: 10,
+    //learningRate: 0.3,
+    errorThresh: 0.000005
+  };
+  console.time("trainSpeed");
   net.train(generatedTrianigData, conf);
+
   let lastJSON = net.toJSON();
   fs.writeFileSync('./JSON/lastJSON.json', JSON.stringify(lastJSON));
 };
@@ -79,30 +100,16 @@ const testTraining = (versuche) => {
 
 
 // ------ SETUP
-let net = new brain.NeuralNetwork({ hiddenLayers: [50, 50] });
+let net = new brain.NeuralNetwork({ hiddenLayers: [20, 20] });
 net.setActivation('sigmoid');
-const MAXITERATIONS = 100;
-const conf = {
-  iterations: MAXITERATIONS,
-  log: true,
-  logPeriod: 10,
-  /*callback: () => {
-    for (var i = generatedTrianigData.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var temp = generatedTrianigData[i];
-      generatedTrianigData[i] = generatedTrianigData[j];
-      generatedTrianigData[j] = temp;
-    }
-  },
-  callbackPerid: 10,*/
-  //learningRate: 0.3,
-  errorThresh: 0.000005
-};
 
+const clean = "clean";
+console.time(clean)
 cleanData(trumpTrainData);
 cleanData(trumpTestData);
 cleanData(kimTrainData);
 cleanData(kimTestData);
+console.timeEnd(clean);
 
 const allRawTrainData = trumpTrainData.concat(
   kimTrainData,
@@ -110,10 +117,14 @@ const allRawTrainData = trumpTrainData.concat(
   kimTestData
 );
 const voc = dict(allRawTrainData);
+
+console.time("testData");
 const generatedTrianigData = generateTestData(
   [trumpTrainData, kimTrainData],
   ['Trump', 'Kim']
 );
+console.timeEnd("testData");
+
 
 // ---  MAIN
 
