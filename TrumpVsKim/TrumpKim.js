@@ -15,6 +15,8 @@ let kimTrainData = JSON.parse(
 let kimTestData = JSON.parse(
   fs.readFileSync('./Rohdaten/kardashianTestData.json')
 );
+// ------ METHODS
+
 
 const generateTestData = (dataArr, namesArr) => {
   let trainDat = [];
@@ -36,43 +38,6 @@ const cleanData = data => {
     }
   });
 };
-
-cleanData(trumpTrainData);
-cleanData(trumpTestData);
-cleanData(kimTrainData);
-cleanData(kimTestData);
-
-const allRawTrainData = trumpTrainData.concat(
-  kimTrainData,
-  trumpTestData,
-  kimTestData
-);
-const voc = dict(allRawTrainData);
-const generatedTrianigData = generateTestData(
-  [trumpTrainData, kimTrainData],
-  ['Trump', 'Kim']
-);
-
-const net = new brain.NeuralNetwork({ hiddenLayers: [1000,1000] });
-net.setActivation('sigmoid');
-const MAXITERATIONS = 100;
-const conf = {
-  iterations: MAXITERATIONS,
-  log: true,
-  logPeriod: 10,
-  /* callback: () => {
-    for (var i = generatedTrianigData.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var temp = generatedTrianigData[i];
-      generatedTrianigData[i] = generatedTrianigData[j];
-      generatedTrianigData[j] = temp;
-    }
-  },
-  callbackPerid: 10,*/
-  //learningRate: 0.3,
-  errorThresh: 0.000005
-};
-
 
 const trainAndSave = () => {
   net.train(generatedTrianigData, conf);
@@ -108,8 +73,49 @@ const testTraining = (versuche) => {
 
     console.log('----------------------------------------');
   }
-  let prozentRichtig = cntRichtig/versuche*100;
-  console.log('+++++++++++++++++++ ' +prozentRichtig+ ' % ++++++++++++++++++++');
+  let prozentRichtig = cntRichtig / versuche * 100;
+  console.log('+++++++++++++++++++ ' + prozentRichtig + ' % ++++++++++++++++++++');
 };
+
+
+// ------ SETUP
+let net = new brain.NeuralNetwork({ hiddenLayers: [50, 50] });
+net.setActivation('sigmoid');
+const MAXITERATIONS = 100;
+const conf = {
+  iterations: MAXITERATIONS,
+  log: true,
+  logPeriod: 10,
+  /*callback: () => {
+    for (var i = generatedTrianigData.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = generatedTrianigData[i];
+      generatedTrianigData[i] = generatedTrianigData[j];
+      generatedTrianigData[j] = temp;
+    }
+  },
+  callbackPerid: 10,*/
+  //learningRate: 0.3,
+  errorThresh: 0.000005
+};
+
+cleanData(trumpTrainData);
+cleanData(trumpTestData);
+cleanData(kimTrainData);
+cleanData(kimTestData);
+
+const allRawTrainData = trumpTrainData.concat(
+  kimTrainData,
+  trumpTestData,
+  kimTestData
+);
+const voc = dict(allRawTrainData);
+const generatedTrianigData = generateTestData(
+  [trumpTrainData, kimTrainData],
+  ['Trump', 'Kim']
+);
+
+// ---  MAIN
+
 trainAndSave();
 testTraining(100);
