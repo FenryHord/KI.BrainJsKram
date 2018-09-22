@@ -3,11 +3,11 @@
 
 <head>
     <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <title>Tweet Guess</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
-    <script src="browser.js"></script>
+    <!-- Load TensorFlow.js -->
+
     <script src="mimirIndex.js"></script>
 
     <script src="Rohdaten/trumpTestData.js"></script>
@@ -15,11 +15,14 @@
     <script src="Rohdaten/kardashianTestData.js"></script>
     <script src="Rohdaten/kardashianTrainingData.js"></script>
 
-    <script src="main.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.13.0"> </script>
 </head>
 
 <body>
-
+    <input id="UserInputText" type="text" />
+    <button onclick="testThisText()">Press Me</button>
+    <script src="index.js"></script>
 </body>
 
 </html>
