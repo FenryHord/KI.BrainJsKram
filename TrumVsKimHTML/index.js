@@ -1,4 +1,3 @@
-
 const dict = extractDictionary;
 
 const generateX = (dataArr, namesArr) => {
