@@ -71,7 +71,7 @@ console.timeEnd("testData");
 const y = tf.tensor2d(datY);
 
 const model = tf.sequential({
-    layers: [tf.layers.dense({ units: 200, inputShape: [5954], batchInputShape: [null,5954] }), tf.layers.dense({units: 200}), tf.layers.dense({units: 2})]
+    layers: [tf.layers.dense({ units: 200, inputShape: [5954], batchInputShape: [null, 5954] }), tf.layers.dense({ units: 200 }), tf.layers.dense({ units: 2 })]
 });
 
 async function asd() {
@@ -86,7 +86,7 @@ async function asd() {
 asd();
 
 predictText = (input) => {
-    model.predict(tf.tensor2d(bow(input, voc), [1, 5954]), {batchSize:  32}).print();
+    model.predict(tf.tensor2d(bow(input, voc), [1, 5954]), { batchSize: 32 }).print();
 }
 
 testThisText = () => {

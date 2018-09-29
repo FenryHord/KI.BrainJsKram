@@ -40,7 +40,7 @@ const cleanData = data => {
 };
 
 const trainAndSave = () => {
-  const MAXITERATIONS = 100;
+  const MAXITERATIONS = 80;
   const conf = {
     iterations: MAXITERATIONS,
     log: true,
@@ -56,7 +56,7 @@ const trainAndSave = () => {
       } */
     },
     callbackPerid: 10,
-    //learningRate: 0.3,
+    learningRate: 0.08,
     errorThresh: 0.000005
   };
   console.time("trainSpeed");
@@ -75,23 +75,30 @@ const testTraining = (versuche) => {
       fromTrump = true;
       testResult =
         trumpTestData[Math.round(Math.random() * trumpTestData.length)];
-      console.log('Trump', testResult.trimRight());
+      if (testResult)
+        console.log('Trump', testResult.trimRight());
     } else {
       fromTrump = false;
       testResult = kimTestData[Math.round(Math.random() * kimTestData.length)];
-      console.log('Kim', testResult.trimRight());
-    }
-    let result = net.run(bow(testResult, voc));
-    console.log('Result: ', result);
-    if (fromTrump === true && result.Trump > result.Kim) {
-      console.log('RICHTIG es war TRUMP');
-    } else if (fromTrump === false && result.Trump < result.Kim) {
-      console.log('RICHTIG es war KIM');
-    } else {
-      console.log('FALSCH');
-      cntRichtig--;
+      if (testResult)
+        console.log('Kim', testResult.trimRight());
     }
 
+    if (testResult) {
+      let result = net.run(bow(testResult, voc));
+      console.log('Result: ', result);
+      if (fromTrump === true && result.Trump > result.Kim) {
+        console.log('RICHTIG es war TRUMP');
+      } else if (fromTrump === false && result.Trump < result.Kim) {
+        console.log('RICHTIG es war KIM');
+      } else {
+        console.log('FALSCH');
+        cntRichtig--;
+      }
+    } else {
+      versuche--;
+      cntRichtig--;
+    }
     console.log('----------------------------------------');
   }
   let prozentRichtig = cntRichtig / versuche * 100;
@@ -129,4 +136,4 @@ console.timeEnd("testData");
 // ---  MAIN
 
 trainAndSave();
-testTraining(100);
+testTraining(500);
